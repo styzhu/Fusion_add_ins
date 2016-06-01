@@ -1,36 +1,14 @@
 #Author-SAAS
 #Description-
 
-import adsk.core, adsk.fusion, adsk.cam, traceback
+import adsk.core, adsk.fusion, adsk.cam, traceback, math
 
 
-def getGCD(i_numList):
-    """return greatest common divisor of the input numberlist"""
-    output = 0
-    for i in range(len(i_numList)-1):
-        if i == 0:
-            output = getPairGCD(i_numList[i], i_numList[i+1])
-        else:
-            output = getPairGCD(output, i_numList[i+1])
-        i += 1
-    return output
+def getPartNumOnSide(shapeSideLength, partSideLength):
+    return math.ceil(shapeSideLength/partSideLength)
 
-
-def getPairGCD(a, b):
-    """helper for getGCD() return the GCD of two input numbers"""
-    TOL = 0.5
-    tmp = max(a, b)
-    b = min(a, b)
-    a = tmp
-    while b%a != 0:
-    # while b%a > TOL:
-        tmp = a - b
-        if tmp > b:
-            a = tmp
-        else:
-            a = b
-            b = tmp
-    return b
+def isOdd(num):
+    return (num & 1)
 
 def run(context):
     ui = None
@@ -47,37 +25,76 @@ def run(context):
         sel = ui.selectEntity('Select an object to legolize', \
         'Bodies,SolidBodies, SurfaceBodies, MeshBodies')
         part = sel.entity
-        # ui.messageBox('name: {}'.format(shape.name))
-        boundingBox = shape.boundingBox
-# if boundingBox.isValid
-        maxPt = boundingBox.maxPoint
-        minPt = boundingBox.minPoint
+        shapeBBox = shape.boundingBox
+# if shapeBBox.isValid
+        shapeLengthX = shapeBBox.maxPoint.x - shapeBBox.minPoint.x
+        shapeLengthY = shapeBBox.maxPoint.y - shapeBBox.minPoint.y
+        shapeLengthZ = shapeBBox.maxPoint.z - shapeBBox.minPoint.z
+
+        partBBox = part.boundingBox
+        partLengthX = partBBox.maxPoint.x - partBBox.minPoint.x
+        partLengthY = partBBox.maxPoint.y - partBBox.minPoint.y
+        partLengthZ = partBBox.maxPoint.z - partBBox.minPoint.z
+        partCenterPt = adsk.core.Point3D.create((partBBox.maxPoint.x + partBBox.minPoint.x)/2,\
+                                                (partBBox.maxPoint.y + partBBox.minPoint.y)/2,\
+                                                (partBBox.maxPoint.z + partBBox.minPoint.z)/2)
 
         nominateList = []
-        finalList = []
-        STEP = 3
-        _voxelSize = getGCD([maxPt.x-minPt.x, maxPt.y-minPt.y, maxPt.z-minPt.z])/STEP
-        numX = (int)((maxPt.x-minPt.x)/_voxelSize)
-        numY = (int)((maxPt.y-minPt.y)/_voxelSize)
-        numZ = (int)((maxPt.z-minPt.z)/_voxelSize)
-        ui.messageBox('{}\n{}'.format(STEP, maxPt.x-minPt.x))
-        ui.messageBox('num: {}'.format(numX*numY*numZ))
-
-        for i in range(numX):
-            for j in range(numY):
-                for k in range(numZ):
-                    pt = adsk.core.Point3D.create(minPt.x+(i+0.5)*_voxelSize,\
-                                                  minPt.y+(j+0.5)*_voxelSize,\
-                                                  minPt.z+(k+0.5)*_voxelSize)
+        numX = getPartNumOnSide(shapeLengthX, partLengthX)
+        numY = getPartNumOnSide(shapeLengthY, partLengthY)
+        numZ = getPartNumOnSide(shapeLengthZ, partLengthZ)
+        centerPt = adsk.core.Point3D.create((shapeBBox.maxPoint.x + shapeBBox.minPoint.x)/2,\
+                                            (shapeBBox.maxPoint.y + shapeBBox.minPoint.y)/2,\
+                                            (shapeBBox.maxPoint.z + shapeBBox.minPoint.z)/2)
+        if not isOdd(numX):
+            centerPt.x = centerPt.x - partLengthX
+        if not isOdd(numY):
+            centerPt.y = centerPt.y - partLengthY
+        if not isOdd(numZ):
+            centerPt.z = centerPt.z - partLengthZ
+        nominateList.append(centerPt)
+        for i in range((math.ceil)(numX/2)):
+            for j in range((math.ceil)(numY/2)):
+                for k in range((math.ceil)(numZ/2)):
+                    pt = adsk.core.Point3D.create(centerPt.x + i * partLengthX,\
+                                                  centerPt.y + j * partLengthY,\
+                                                  centerPt.z + k * partLengthZ,)
                     nominateList.append(pt)
+                    pt = adsk.core.Point3D.create(centerPt.x + i * partLengthX,\
+                                                  centerPt.y - j * partLengthY,\
+                                                  centerPt.z + k * partLengthZ,)
+                    nominateList.append(pt)
+                    pt = adsk.core.Point3D.create(centerPt.x + i * partLengthX,\
+                                                  centerPt.y + j * partLengthY,\
+                                                  centerPt.z - k * partLengthZ,)
+                    nominateList.append(pt)
+                    pt = adsk.core.Point3D.create(centerPt.x - i * partLengthX,\
+                                                  centerPt.y + j * partLengthY,\
+                                                  centerPt.z + k * partLengthZ,)
+                    nominateList.append(pt)
+                    pt = adsk.core.Point3D.create(centerPt.x - i * partLengthX,\
+                                                  centerPt.y - j * partLengthY,\
+                                                  centerPt.z + k * partLengthZ,)
+                    nominateList.append(pt)
+                    pt = adsk.core.Point3D.create(centerPt.x + i * partLengthX,\
+                                                  centerPt.y - j * partLengthY,\
+                                                  centerPt.z - k * partLengthZ,)
+                    nominateList.append(pt)
+                    pt = adsk.core.Point3D.create(centerPt.x - i * partLengthX,\
+                                                  centerPt.y + j * partLengthY,\
+                                                  centerPt.z - k * partLengthZ,)
+                    nominateList.append(pt)
+                    pt = adsk.core.Point3D.create(centerPt.x - i * partLengthX,\
+                                                  centerPt.y - j * partLengthY,\
+                                                  centerPt.z - k * partLengthZ,)
+                    nominateList.append(pt)
+        ui.messageBox('num: {}'.format(len(nominateList)))
+
+        ui.messageBox('list: {}'.format(numX))
+        ui.messageBox('center: {}, {}, {}'.format(centerPt.x, centerPt.y, centerPt.z))
 
         translateMatrix = adsk.core.Matrix3D.create()
         # ui.messageBox('part: \n{}'.format(part))
-
-        partBox = part.boundingBox
-        px = partBox.maxPoint.x - partBox.minPoint.x
-        py = partBox.maxPoint.y - partBox.minPoint.y
-        pz = partBox.maxPoint.z - partBox.minPoint.z
 
         target = None
         if part.assemblyContext:
@@ -85,27 +102,18 @@ def run(context):
         else:
             target = root
 
-        # partPt = adsk.core.Point3D.create(px, py, pz)
-        partPt = adsk.core.Vector3D.create(px, py, pz)
-        xAxis = adsk.core.Vector3D.create(1, 0, 0)
-        yAxis = adsk.core.Vector3D.create(0, 1, 0)
-        zAxis = adsk.core.Vector3D.create(0, 0, 1)
         for p in nominateList:
             ptContainVal = shape.pointContainment(p)
             if ptContainVal == 0:
                 newBody = part.copyToComponent(target)
                 trans = adsk.core.Matrix3D.create()
-                trans.translation = adsk.core.Vector3D.create(p.x, p.y, p.z)
+                trans.translation = adsk.core.Vector3D.create(p.x - partCenterPt.x,\
+                                                              p.y - partCenterPt.y,\
+                                                              p.z - partCenterPt.z)
                 bodyColl = adsk.core.ObjectCollection.create()
                 bodyColl.add(newBody)
                 moveInput = root.features.moveFeatures.createInput(bodyColl, trans)
                 moveFeat = root.features.moveFeatures.add(moveInput)
-
-                # finalList.append(p)
-                # ui.messageBox('{}'.format(p))
-                # translateMatrix.setToIdentity()
-                # translateMatrix.translation = partPt
-                # app.activeProduct.rootComponent.occurrences.addExistingComponent(part, translateMatrix)
 
     except:
         if ui:
