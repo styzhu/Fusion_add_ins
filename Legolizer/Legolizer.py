@@ -53,45 +53,21 @@ def run(context):
         if not isOdd(numZ):
             centerPt.z = centerPt.z - partLengthZ
         nominateList.append(centerPt)
-        for i in range((math.ceil)(numX/2)):
-            for j in range((math.ceil)(numY/2)):
-                for k in range((math.ceil)(numZ/2)):
-                    pt = adsk.core.Point3D.create(centerPt.x + i * partLengthX,\
-                                                  centerPt.y + j * partLengthY,\
-                                                  centerPt.z + k * partLengthZ,)
+        startPt = adsk.core.Point3D.create(centerPt.x - (math.ceil)(numX/2) * partLengthX,\
+                                           centerPt.y - (math.ceil)(numY/2) * partLengthY,\
+                                           centerPt.z - (math.ceil)(numZ/2) * partLengthZ)
+        for i in range(numX + 1):
+            for j in range(numY + 1):
+                for k in range(numZ + 1):
+                    pt = adsk.core.Point3D.create(startPt.x + i * partLengthX,\
+                                                  startPt.y + j * partLengthY,\
+                                                  startPt.z + k * partLengthZ,)
                     nominateList.append(pt)
-                    pt = adsk.core.Point3D.create(centerPt.x + i * partLengthX,\
-                                                  centerPt.y - j * partLengthY,\
-                                                  centerPt.z + k * partLengthZ,)
-                    nominateList.append(pt)
-                    pt = adsk.core.Point3D.create(centerPt.x + i * partLengthX,\
-                                                  centerPt.y + j * partLengthY,\
-                                                  centerPt.z - k * partLengthZ,)
-                    nominateList.append(pt)
-                    pt = adsk.core.Point3D.create(centerPt.x - i * partLengthX,\
-                                                  centerPt.y + j * partLengthY,\
-                                                  centerPt.z + k * partLengthZ,)
-                    nominateList.append(pt)
-                    pt = adsk.core.Point3D.create(centerPt.x - i * partLengthX,\
-                                                  centerPt.y - j * partLengthY,\
-                                                  centerPt.z + k * partLengthZ,)
-                    nominateList.append(pt)
-                    pt = adsk.core.Point3D.create(centerPt.x + i * partLengthX,\
-                                                  centerPt.y - j * partLengthY,\
-                                                  centerPt.z - k * partLengthZ,)
-                    nominateList.append(pt)
-                    pt = adsk.core.Point3D.create(centerPt.x - i * partLengthX,\
-                                                  centerPt.y + j * partLengthY,\
-                                                  centerPt.z - k * partLengthZ,)
-                    nominateList.append(pt)
-                    pt = adsk.core.Point3D.create(centerPt.x - i * partLengthX,\
-                                                  centerPt.y - j * partLengthY,\
-                                                  centerPt.z - k * partLengthZ,)
-                    nominateList.append(pt)
-        ui.messageBox('num: {}'.format(len(nominateList)))
+
+        ui.messageBox('startPt: {}, {}, {}'.format(startPt.x, startPt.y, startPt.z))
 
         ui.messageBox('list: {}'.format(numX))
-        ui.messageBox('center: {}, {}, {}'.format(centerPt.x, centerPt.y, centerPt.z))
+        ui.messageBox('center: {}, {}, {}'.format(numX, numY, numZ))
 
         translateMatrix = adsk.core.Matrix3D.create()
         # ui.messageBox('part: \n{}'.format(part))
