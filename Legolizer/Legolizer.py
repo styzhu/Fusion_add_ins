@@ -61,13 +61,13 @@ def run(context):
                 for k in range(numZ + 1):
                     pt = adsk.core.Point3D.create(startPt.x + i * partLengthX,\
                                                   startPt.y + j * partLengthY,\
-                                                  startPt.z + k * partLengthZ,)
+                                                  startPt.z + k * partLengthZ)
                     nominateList.append(pt)
 
-        ui.messageBox('startPt: {}, {}, {}'.format(startPt.x, startPt.y, startPt.z))
-
-        ui.messageBox('list: {}'.format(numX))
-        ui.messageBox('center: {}, {}, {}'.format(numX, numY, numZ))
+        # ui.messageBox('startPt: {}, {}, {}'.format(startPt.x, startPt.y, startPt.z))
+        #
+        # ui.messageBox('list: {}'.format(numX))
+        # ui.messageBox('center: {}, {}, {}'.format(numX, numY, numZ))
 
         translateMatrix = adsk.core.Matrix3D.create()
         # ui.messageBox('part: \n{}'.format(part))
@@ -79,6 +79,33 @@ def run(context):
             target = root
 
         for p in nominateList:
+            # test if point is inside, thus reduce the chance of Fusion's frozen
+            p1 = adsk.core.Point3D.create(p.x + partLengthX,\
+                                          p.y,\
+                                          p.z)
+            p2 = adsk.core.Point3D.create(p.x - partLengthX,\
+                                          p.y,\
+                                          p.z)
+            p3 = adsk.core.Point3D.create(p.x,\
+                                          p.y + partLengthY,\
+                                          p.z)
+            p4 = adsk.core.Point3D.create(p.x,\
+                                          p.y - partLengthY,\
+                                          p.z)
+            p5 = adsk.core.Point3D.create(p.x,\
+                                          p.y,\
+                                          p.z + partLengthZ)
+            p6 = adsk.core.Point3D.create(p.x,\
+                                          p.y,\
+                                          p.z - partLengthZ)
+            if (shape.pointContainment(p1) +\
+                shape.pointContainment(p2) +\
+                shape.pointContainment(p3) +\
+                shape.pointContainment(p4) +\
+                shape.pointContainment(p5) +\
+                shape.pointContainment(p6) == 0):
+                continue
+
             ptContainVal = shape.pointContainment(p)
             if ptContainVal == 0:
                 newBody = part.copyToComponent(target)
