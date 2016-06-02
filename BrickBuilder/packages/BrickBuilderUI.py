@@ -55,9 +55,15 @@ class BrickBuilderCommandExecuteHandler(adsk.core.CommandEventHandler):
             builder = BB.BrickBuilderModel()
             for input in inputs:
                 if input.id == commandId + '_shape_selection':
-                    ui.messageBox('{}'.format(input.selectionCount))
+                    # ui.messageBox('{}'.format(input.selectionCount))
+                    if input.selectionCount == 0:
+                        ui.messageBox('Select the Shape!')
+                        args.isValidResult = False
                     builder.shape = input.selection(0).entity
                 elif  input.id == commandId + '_brick_selection':
+                    if input.selectionCount == 0:
+                        ui.messageBox('Select the Brick!')
+                        args.isValidResult = False
                     builder.part = input.selection(0).entity
                 elif  input.id == commandId + '_hollow_checkbox':
                     builder.isHollow = bool(input.value)

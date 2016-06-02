@@ -9,7 +9,7 @@ ui  = app.userInterface
 
 def run(context):
     try:
-        ui.messageBox('hello')
+        # ui.messageBox('hello')
         UI.run(context)
     except:
         if ui:
@@ -18,7 +18,7 @@ def run(context):
 def stop(context):
     try:
         UI.stop(context)
-        ui.messageBox('Stop addin')
+        # ui.messageBox('Stop addin')
     except:
         if ui:
             ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))

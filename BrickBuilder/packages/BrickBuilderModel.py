@@ -44,7 +44,7 @@ class BrickBuilderModel:
             shape = self.shape
             part = self.part
             isHollow = self.isHollow
-            ui.messageBox('{}'.format(isHollow))
+            # ui.messageBox('{}'.format(isHollow))
             shapeBBox = shape.boundingBox
     # if shapeBBox.isValid
             shapeLengthX = shapeBBox.maxPoint.x - shapeBBox.minPoint.x
@@ -98,32 +98,34 @@ class BrickBuilderModel:
                 target = root
 
             for p in nominateList:
-                # test if point is inside, thus reduce the chance of Fusion's frozen
-                p1 = adsk.core.Point3D.create(p.x + partLengthX,\
-                                              p.y,\
-                                              p.z)
-                p2 = adsk.core.Point3D.create(p.x - partLengthX,\
-                                              p.y,\
-                                              p.z)
-                p3 = adsk.core.Point3D.create(p.x,\
-                                              p.y + partLengthY,\
-                                              p.z)
-                p4 = adsk.core.Point3D.create(p.x,\
-                                              p.y - partLengthY,\
-                                              p.z)
-                p5 = adsk.core.Point3D.create(p.x,\
-                                              p.y,\
-                                              p.z + partLengthZ)
-                p6 = adsk.core.Point3D.create(p.x,\
-                                              p.y,\
-                                              p.z - partLengthZ)
-                if (shape.pointContainment(p1) +\
-                    shape.pointContainment(p2) +\
-                    shape.pointContainment(p3) +\
-                    shape.pointContainment(p4) +\
-                    shape.pointContainment(p5) +\
-                    shape.pointContainment(p6) == 0):
-                    continue
+
+                if isHollow:
+                    # test if point is inside, thus reduce the chance of Fusion's frozen
+                    p1 = adsk.core.Point3D.create(p.x + partLengthX,\
+                                                  p.y,\
+                                                  p.z)
+                    p2 = adsk.core.Point3D.create(p.x - partLengthX,\
+                                                  p.y,\
+                                                  p.z)
+                    p3 = adsk.core.Point3D.create(p.x,\
+                                                  p.y + partLengthY,\
+                                                  p.z)
+                    p4 = adsk.core.Point3D.create(p.x,\
+                                                  p.y - partLengthY,\
+                                                  p.z)
+                    p5 = adsk.core.Point3D.create(p.x,\
+                                                  p.y,\
+                                                  p.z + partLengthZ)
+                    p6 = adsk.core.Point3D.create(p.x,\
+                                                  p.y,\
+                                                  p.z - partLengthZ)
+                    if (shape.pointContainment(p1) +\
+                        shape.pointContainment(p2) +\
+                        shape.pointContainment(p3) +\
+                        shape.pointContainment(p4) +\
+                        shape.pointContainment(p5) +\
+                        shape.pointContainment(p6) == 0):
+                        continue
 
                 ptContainVal = shape.pointContainment(p)
                 if ptContainVal == 0:
