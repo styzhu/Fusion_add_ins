@@ -1,7 +1,5 @@
 import adsk.core, adsk.fusion, adsk.cam, traceback
-from . import BrickBuilderModel as BBM
-from . import BuildingBlock as BB
-from . import config as conf
+from . import BrickBuilderModel as BB
 
 # global set of event handlers to keep them referenced for the duration of the command
 handlers = []
@@ -54,13 +52,7 @@ class BrickBuilderCommandExecuteHandler(adsk.core.CommandEventHandler):
         try:
             command = args.firingEvent.sender
             inputs = command.commandInputs
-            builder = BBM.BrickBuilderModel()
-
-            design = adsk.fusion.Design.cast(app.activeProduct)
-            length = adsk.core.ValueInput.createByReal(1)
-            if design.userParameters.itemByName("length") is None:
-                design.userParameters.add("length", length, "cm", "length")
-
+            builder = BB.BrickBuilderModel()
             for input in inputs:
                 if input.id == commandId + '_shape_selection':
                     ui.messageBox('{}'.format(input.selectionCount))
@@ -105,26 +97,17 @@ class BrickBuilderCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
 
             #define the inputs
             inputs = cmd.commandInputs
-
-            # Create tab input 1
-            tabCmdInput1 = inputs.addTabCommandInput(commandId + '_bricks_generator', 'Bricks Generator');
-            tab1ChildInputs = tabCmdInput1.children;
             # Create selection input
-            selectionInput = tab1ChildInputs.addSelectionInput(commandId + '_shape_selection', 'Select Shape', 'Select the Shape Body')
+            selectionInput = inputs.addSelectionInput(commandId + '_shape_selection', 'Select Shape', 'Select the Shape Body')
             selectionInput.setSelectionLimits(1, 1)
             selectionInput.addSelectionFilter('Bodies')
             # Create selection input
-            selectionInput2 = tab1ChildInputs.addSelectionInput(commandId + '_brick_selection', 'Select Brick', 'Select the Brick Body')
+            selectionInput2 = inputs.addSelectionInput(commandId + '_brick_selection', 'Select Brick', 'Select the Brick Body')
             selectionInput2.setSelectionLimits(1, 1)
             selectionInput2.addSelectionFilter('Bodies')
             # Create bool value input with checkbox style
-            tab1ChildInputs.addBoolValueInput(commandId + '_hollow_checkbox', 'Hollow', True, '', True)
+            inputs.addBoolValueInput(commandId + '_hollow_checkbox', 'Hollow', True, '', True)
 
-            # Create tab input 2
-            tabCmdInput2 = inputs.addTabCommandInput(commandId + '_voxel_editor', 'Voxel Editor');
-            tab2ChildInputs = tabCmdInput2.children;
-
-            tab2ChildInputs.addBoolValueInput(commandId + '_add_voxel', 'Add Voxel', True, '', False)
         except:
             if ui:
                 ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
