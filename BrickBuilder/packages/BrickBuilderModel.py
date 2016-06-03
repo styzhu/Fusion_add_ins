@@ -31,6 +31,41 @@ class BrickBuilderModel:
     def isOdd(self, num):
         return (num & 1)
 
+    def cutHollow(self, nList, numX, numY, numZ):
+        # minPt, maxPt stands for min/max point in the nlist, not the pts for the shape
+        hList = []
+        for p in nList:
+            hList.append(shape.pointContainment(p))
+
+        _minPt = nList[0]
+        _maxPt = nList[-1]
+
+        _i = 0
+        for p in nList:
+            if p.x == _minPt.x or p.x == _maxPt.x:
+                continue
+            elif p.y == _minPt.y or p.y == _maxPt.y:
+                continue
+            elif p.z == _minPt.z or p.z == _maxPt.z:
+                continue
+
+            p1 = nList[_i + (numZ + 1) * (numY + 1)]  # x+1
+            p2 = nList[_i - (numZ + 1) * (numY + 1)]  # x-1
+            p3 = nList[_i + (numZ + 1)]               # y+1
+            p4 = nList[_i - (numZ + 1)]               # y-1
+            p5 = nList[_i + 1]                        # z+1
+            p6 = nList[_i - 1]                        # z-1
+            if (shape.pointContainment(p1) +\
+                shape.pointContainment(p2) +\
+                shape.pointContainment(p3) +\
+                shape.pointContainment(p4) +\
+                shape.pointContainment(p5) +\
+                shape.pointContainment(p6) == 0):
+                hList[_i] = -1
+            _i = _i + 1
+
+        return hList
+
     def build(self):
         ui = None
         try:
@@ -72,10 +107,10 @@ class BrickBuilderModel:
                 centerPt.y = centerPt.y - partLengthY
             if not self.isOdd(numZ):
                 centerPt.z = centerPt.z - partLengthZ
-            nominateList.append(centerPt)
             startPt = adsk.core.Point3D.create(centerPt.x - (math.ceil)(numX/2) * partLengthX,\
                                                centerPt.y - (math.ceil)(numY/2) * partLengthY,\
                                                centerPt.z - (math.ceil)(numZ/2) * partLengthZ)
+            nominateList.append(startPt)
             for i in range(numX + 1):
                 for j in range(numY + 1):
                     for k in range(numZ + 1):
@@ -97,38 +132,14 @@ class BrickBuilderModel:
             else:
                 target = root
 
+            hList = []
+            if isHollow:
+                # test if point is inside, thus reduce the chance of Fusion's frozen
+                hList = self.cutHollow(nominateList, numX, numY, numZ)
+
+            _i = 0
             for p in nominateList:
-
-                if isHollow:
-                    # test if point is inside, thus reduce the chance of Fusion's frozen
-                    p1 = adsk.core.Point3D.create(p.x + partLengthX,\
-                                                  p.y,\
-                                                  p.z)
-                    p2 = adsk.core.Point3D.create(p.x - partLengthX,\
-                                                  p.y,\
-                                                  p.z)
-                    p3 = adsk.core.Point3D.create(p.x,\
-                                                  p.y + partLengthY,\
-                                                  p.z)
-                    p4 = adsk.core.Point3D.create(p.x,\
-                                                  p.y - partLengthY,\
-                                                  p.z)
-                    p5 = adsk.core.Point3D.create(p.x,\
-                                                  p.y,\
-                                                  p.z + partLengthZ)
-                    p6 = adsk.core.Point3D.create(p.x,\
-                                                  p.y,\
-                                                  p.z - partLengthZ)
-                    if (shape.pointContainment(p1) +\
-                        shape.pointContainment(p2) +\
-                        shape.pointContainment(p3) +\
-                        shape.pointContainment(p4) +\
-                        shape.pointContainment(p5) +\
-                        shape.pointContainment(p6) == 0):
-                        continue
-
-                ptContainVal = shape.pointContainment(p)
-                if ptContainVal == 0:
+                if hList[_i] == 0:
                     newBody = part.copyToComponent(target)
                     trans = adsk.core.Matrix3D.create()
                     trans.translation = adsk.core.Vector3D.create(p.x - partCenterPt.x,\
@@ -138,6 +149,7 @@ class BrickBuilderModel:
                     bodyColl.add(newBody)
                     moveInput = root.features.moveFeatures.createInput(bodyColl, trans)
                     moveFeat = root.features.moveFeatures.add(moveInput)
+                _i = _i + 1
 
         except:
             if ui:
