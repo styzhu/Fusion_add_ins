@@ -179,7 +179,7 @@ class BrickBuilderModel:
                     bodyColl.add(newBody)
                     moveInput = root.features.moveFeatures.createInput(bodyColl, trans)
                     moveFeat = root.features.moveFeatures.add(moveInput)
-                    time.sleep(0.1)
+                    # time.sleep(0.1)
                 _i = _i + 1
 
         except:
