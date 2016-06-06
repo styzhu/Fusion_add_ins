@@ -67,6 +67,12 @@ class BrickBuilderCommandExecuteHandler(adsk.core.CommandEventHandler):
                     builder.part = input.selection(0).entity
                 elif  input.id == commandId + '_hollow_checkbox':
                     builder.isHollow = bool(input.value)
+                elif input.id == commandId + 'offsetX':
+                    builder.offsetX = input.value
+                elif input.id == commandId + 'offsetY':
+                    builder.offsetY = input.value
+                elif input.id == commandId + 'offsetZ':
+                    builder.offsetZ = input.value
 
             builder.build();
             args.isValidResult = True
@@ -113,7 +119,10 @@ class BrickBuilderCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
             selectionInput2.addSelectionFilter('Bodies')
             # Create bool value input with checkbox style
             inputs.addBoolValueInput(commandId + '_hollow_checkbox', 'Hollow', True, '', True)
-
+            # offset
+            inputs.addValueInput(commandId + 'offsetX', 'Offset X', 'mm', adsk.core.ValueInput.createByReal(0.0))
+            inputs.addValueInput(commandId + 'offsetY', 'Offset Y', 'mm', adsk.core.ValueInput.createByReal(0.0))
+            inputs.addValueInput(commandId + 'offsetZ', 'Offset Z', 'mm', adsk.core.ValueInput.createByReal(0.0))
         except:
             if ui:
                 ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))

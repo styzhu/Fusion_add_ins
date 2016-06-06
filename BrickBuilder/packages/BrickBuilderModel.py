@@ -1,9 +1,30 @@
 #Author-SAAS
 #Description-
 
-import adsk.core, adsk.fusion, adsk.cam, traceback, math
+import adsk.core, adsk.fusion, adsk.cam, traceback, math, time
 
 class BrickBuilderModel:
+    @property
+    def offsetX(self):
+        return self._offsetX
+    @offsetX.setter
+    def offsetX(self, value):
+        self._offsetX = value
+
+    @property
+    def offsetY(self):
+        return self._offsetY
+    @offsetY.setter
+    def offsetY(self, value):
+        self._offsetY = value
+
+    @property
+    def offsetZ(self):
+        return self._offsetZ
+    @offsetZ.setter
+    def offsetZ(self, value):
+        self._offsetZ = value
+
     @property
     def shape(self):
         return self._shape
@@ -43,10 +64,13 @@ class BrickBuilderModel:
         _i = 0
         for p in nList:
             if p.x == _minPt.x or p.x == _maxPt.x:
+                _i = _i + 1
                 continue
             elif p.y == _minPt.y or p.y == _maxPt.y:
+                _i = _i + 1
                 continue
             elif p.z == _minPt.z or p.z == _maxPt.z:
+                _i = _i + 1
                 continue
 
             p1 = nList[_i + (numZ + 1) * (numY + 1)]  # x+1
@@ -76,6 +100,12 @@ class BrickBuilderModel:
             global shape
             global part
             global isHollow
+            global offsetX
+            global offsetY
+            global offsetZ
+            offsetX = self.offsetX
+            offsetY = self.offsetY
+            offsetZ = self.offsetZ
             shape = self.shape
             part = self.part
             isHollow = self.isHollow
@@ -87,12 +117,12 @@ class BrickBuilderModel:
             shapeLengthZ = shapeBBox.maxPoint.z - shapeBBox.minPoint.z
 
             partBBox = part.boundingBox
-            partLengthX = partBBox.maxPoint.x - partBBox.minPoint.x
-            partLengthY = partBBox.maxPoint.y - partBBox.minPoint.y
-            partLengthZ = partBBox.maxPoint.z - partBBox.minPoint.z
-            partCenterPt = adsk.core.Point3D.create((partBBox.maxPoint.x + partBBox.minPoint.x)/2,\
-                                                    (partBBox.maxPoint.y + partBBox.minPoint.y)/2,\
-                                                    (partBBox.maxPoint.z + partBBox.minPoint.z)/2)
+            partLengthX = partBBox.maxPoint.x - partBBox.minPoint.x - offsetX
+            partLengthY = partBBox.maxPoint.y - partBBox.minPoint.y - offsetY
+            partLengthZ = partBBox.maxPoint.z - partBBox.minPoint.z - offsetZ
+            partCenterPt = adsk.core.Point3D.create((partBBox.maxPoint.x + partBBox.minPoint.x - offsetX)/2,\
+                                                    (partBBox.maxPoint.y + partBBox.minPoint.y - offsetY)/2,\
+                                                    (partBBox.maxPoint.z + partBBox.minPoint.z - offsetZ)/2)
 
             nominateList = []
             numX = self.getPartNumOnSide(shapeLengthX, partLengthX)
@@ -149,6 +179,7 @@ class BrickBuilderModel:
                     bodyColl.add(newBody)
                     moveInput = root.features.moveFeatures.createInput(bodyColl, trans)
                     moveFeat = root.features.moveFeatures.add(moveInput)
+                    time.sleep(0.1)
                 _i = _i + 1
 
         except:
