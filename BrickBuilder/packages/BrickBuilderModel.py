@@ -52,11 +52,14 @@ class BrickBuilderModel:
     def isOdd(self, num):
         return (num & 1)
 
-    def cutHollow(self, nList, numX, numY, numZ):
+    def getFinalList(self, nList, numX, numY, numZ):
         # minPt, maxPt stands for min/max point in the nlist, not the pts for the shape
         hList = []
         for p in nList:
             hList.append(shape.pointContainment(p))
+
+        if not isHollow:
+            return hList
 
         _minPt = nList[0]
         _maxPt = nList[-1]
@@ -163,9 +166,8 @@ class BrickBuilderModel:
                 target = root
 
             hList = []
-            if isHollow:
-                # test if point is inside, thus reduce the chance of Fusion's frozen
-                hList = self.cutHollow(nominateList, numX, numY, numZ)
+            # test if point is inside, thus reduce the chance of Fusion's frozen
+            hList = self.getFinalList(nominateList, numX, numY, numZ)
 
             _i = 0
             for p in nominateList:
