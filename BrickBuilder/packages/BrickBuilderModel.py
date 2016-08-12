@@ -169,11 +169,12 @@ class BrickBuilderModel:
             # test if point is inside, thus reduce the chance of Fusion's frozen
             hList = self.getFinalList(nominateList, numX, numY, numZ)
 
+            trans = adsk.core.Matrix3D.create()
             _i = 0
             for p in nominateList:
                 if hList[_i] == 0:
                     newBody = part.copyToComponent(target)
-                    trans = adsk.core.Matrix3D.create()
+
                     trans.translation = adsk.core.Vector3D.create(p.x - partCenterPt.x,\
                                                                   p.y - partCenterPt.y,\
                                                                   p.z - partCenterPt.z)
